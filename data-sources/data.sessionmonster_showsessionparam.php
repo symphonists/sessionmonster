@@ -1,36 +1,49 @@
-<?php	
-		
-	Final Class datasourceSessionmonster_showsessionparam Extends DataSource{			
+<?php
+
+	Final Class datasourceSessionmonster_showsessionparam Extends DataSource
+	{
 
 		function about(){
 			return array(
-					 'name' => 'Session Monster: Show Session Parameters',
-					 'author' => array(
-							'name' => 'Symphony Team',
-							'website' => 'http://symphony21.com',
-							'email' => 'team@symphony21.com'),
-					 'version' => '1.0',
-					 'release-date' => '2008-05-12');	
+				'name' => 'Session Monster: Show Session Parameters',
+				'author' => array(
+					'name' => 'Symphony Team'
+				),
+				'version' => '1.0',
+				'release-date' => '2012-10-23'
+			);
 		}
 
-		
-		public function grab(){
-			
-			session_start();
-			
-			$xml = new XMLElement('session-monster');
-								
-			if(!is_array($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster']) || empty($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'])) return NULL;
-				
-			$count = 0;	
-				
-			foreach($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'] as $key => $val){
-				if(strlen($val) <= 0) continue;		
-				$xml->appendChild(new XMLElement('item', $val, array('name' => $key)));
-				$count++;
-	        }
 
-	    	return ($count == 0 ? NULL : $xml);
-				
+		public function execute(){
+			session_start();
+
+			if( !is_array( $_SESSION['sessionmonster'] ) || empty($_SESSION['sessionmonster']) ) return null;
+
+			$result = new XMLElement('session-monster');
+
+			foreach( $_SESSION['sessionmonster'] as $key => $val ){
+				$this->process( $result, $key, $val );
+			}
+
+			return $result;
+		}
+
+		private function process(XMLElement &$result, $key, $val){
+			$elem = new XMLElement((is_int( $key ) ? "item-" : '').$key);
+
+			// go deeper
+			if( is_array( $val ) ){
+				foreach( $val as $k => $v ){
+					$this->process( $elem, $k, $v );
+				}
+			}
+
+			// add
+			else{
+				$elem->setValue( General::sanitize( $val ) );
+			}
+
+			$result->appendChild( $elem );
 		}
 	}
