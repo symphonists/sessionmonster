@@ -17,7 +17,16 @@
 		}
 				
 		public function load() {
-			return $this->__trigger();
+
+			if(is_array($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'])) {
+				foreach($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'] as $key => $val){
+					if (!in_array($key, array('symphony-page', 'debug', 'profile'))) {
+						Frontend::instance()->Page()->_param['sessionmonster-'.$key] = $val;
+					}
+				}
+			}
+
+			if(is_array($_GET) && !empty($_GET)) return $this->__trigger();
 		}
 
 		public static function documentation() {
@@ -45,12 +54,10 @@
 
 			$xml = new XMLElement('session-monster');
 
-			$exclude = array('symphony-page', 'debug', 'profile');
-
 			$count = 0;
 			
 			foreach($_GET as $key => $val) {
-				if(!in_array($key, $exclude)) {
+				if(!in_array($key, array('symphony-page', 'debug', 'profile'))) {
 
 					$_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'][$key] = $val;
 					$xml->appendChild(
@@ -61,14 +68,6 @@
 					);
 
 					$count++;
-				}
-			}
-
-			if(is_array($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'])) {
-				foreach($_SESSION[__SYM_COOKIE_PREFIX__ . '-sessionmonster'] as $key => $val){
-					if (!in_array($key, $exclude)) {
-						Frontend::instance()->Page()->_param['sessionmonster-'.$key] = $val;
-					}
 				}
 			}
 
